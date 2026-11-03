@@ -4,7 +4,7 @@
    2) START_QR_VALUE / GOAL_QR_VALUE はQR印刷ページと共通の値
    ========================================================= */
 
-const GAS_WEB_APP_URL = "https://script.google.com/a/macros/g.bears.ed.jp/s/AKfycbz_VGhmY-b_UQli7bDT9_MiCrVtTh2gU_qMDfw8X0H9xyCd-wfzy2-0AxErL8iuHcVA/exec";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz_VGhmY-b_UQli7bDT9_MiCrVtTh2gU_qMDfw8X0H9xyCd-wfzy2-0AxErL8iuHcVA/exec";
 const START_QR_VALUE = "MAZE_START_V1";
 const GOAL_QR_VALUE = "MAZE_GOAL_V1";
 const LIMIT_TIME = 8 * 60 * 1000;
