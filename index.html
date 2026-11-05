@@ -40,7 +40,6 @@
         <button id="startCameraBtn" class="primary-button" type="button">カメラを起動</button>
         <button id="stopCameraBtn" class="secondary-button" type="button" disabled>カメラを停止</button>
       </div>
-      <!-- JavaScriptが参照するエラー表示欄。これがないと初期化が中断します。 -->
       <p id="cameraError" class="error-message" role="alert" aria-live="polite"></p>
       <p class="help-text">カメラを起動し、QRコードをカメラに映してください。スタートを読み取った後もカメラは起動したままです。</p>
     </section>
@@ -60,8 +59,11 @@
   <iframe name="gasResultFrame" id="gasResultFrame" title="送信結果" class="hidden-frame"></iframe>
   <canvas id="scanCanvas" hidden></canvas>
 
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- QRコード読み取りライブラリ。読み取りだけに使う（QR生成ライブラリは不要） -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
   <script src="app.js"></script>
 </body>
 </html>
