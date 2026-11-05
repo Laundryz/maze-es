@@ -47,18 +47,20 @@ h3 { margin: 0 0 12px; }
   position: relative;
   overflow: hidden;
   width: 100%;
-  min-height: 220px;
-  aspect-ratio: 4 / 3;
+  height: clamp(220px, 65vw, 420px);
   border-radius: 10px;
   background: #161b22;
 }
 
 #cameraPreview {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transform: scaleX(1);
+  object-fit: contain;
+  background: #161b22;
+  transform: none;
 }
 
 .camera-placeholder {
@@ -71,6 +73,13 @@ h3 { margin: 0 0 12px; }
   gap: 12px;
   color: #fff;
   background: #222831;
+  z-index: 1;
+}
+
+/* .camera-placeholder に display:flex を指定しているため、
+   hidden属性が付いたときは明示的に非表示にする */
+.camera-placeholder[hidden] {
+  display: none !important;
 }
 
 .camera-icon { font-size: 3rem; }
@@ -131,5 +140,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   .qr-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
   .qr-item { break-inside: avoid; border: 1px solid #333; }
   .qr-image { min-height: 240px; }
+  .video-frame { height: min(72vw, 420px); }
   .qr-image img, .qr-image canvas { width: 220px !important; height: 220px !important; }
 }

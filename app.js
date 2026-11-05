@@ -4,7 +4,7 @@
    2) START_QR_VALUE / GOAL_QR_VALUE はQR印刷ページと共通の値
    ========================================================= */
 
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz_VGhmY-b_UQli7bDT9_MiCrVtTh2gU_qMDfw8X0H9xyCd-wfzy2-0AxErL8iuHcVA/exec";
+const GAS_WEB_APP_URL = "ここにGASウェブアプリの_exec_URLを貼り付ける";
 const START_QR_VALUE = "MAZE_START_V1";
 const GOAL_QR_VALUE = "MAZE_GOAL_V1";
 const LIMIT_TIME = 8 * 60 * 1000;
@@ -29,6 +29,7 @@ const cameraErrorElement = document.getElementById("cameraError");
 const startCameraButton = document.getElementById("startCameraBtn");
 const stopCameraButton = document.getElementById("stopCameraBtn");
 const cameraPlaceholder = document.getElementById("cameraPlaceholder");
+const videoFrame = document.getElementById("videoFrame");
 const submitArea = document.getElementById("submitArea");
 const submitButton = document.getElementById("submitBtn");
 
@@ -99,9 +100,24 @@ async function startScanner() {
       mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
     }
 
+    video.muted = true;
+    video.playsInline = true;
+    video.autoplay = true;
     video.srcObject = mediaStream;
     await video.play();
+
+    // 映像の準備ができたらプレースホルダーを隠してプレビューを表示
+    if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+      await new Promise((resolve, reject) => {
+        const timeoutId = window.setTimeout(() => reject(new Error("カメラ映像の読み込みがタイムアウトしました。")), 8000);
+        video.addEventListener("loadeddata", () => {
+          window.clearTimeout(timeoutId);
+          resolve();
+        }, { once: true });
+      });
+    }
     cameraPlaceholder.hidden = true;
+    if (videoFrame) videoFrame.classList.add("is-active");
     stopCameraButton.disabled = false;
     startCameraButton.textContent = "カメラ起動中";
     statusElement.textContent = gameState === "running"
@@ -114,7 +130,10 @@ async function startScanner() {
       mediaStream.getTracks().forEach(track => track.stop());
     }
     mediaStream = null;
+    video.pause();
     video.srcObject = null;
+    cameraPlaceholder.hidden = false;
+    if (videoFrame) videoFrame.classList.remove("is-active");
     startCameraButton.disabled = false;
     startCameraButton.textContent = "カメラを起動";
     cameraErrorElement.textContent = cameraErrorMessage(error) +
@@ -149,8 +168,10 @@ function stopScanner() {
     mediaStream.getTracks().forEach(track => track.stop());
     mediaStream = null;
   }
+  video.pause();
   video.srcObject = null;
   cameraPlaceholder.hidden = false;
+  if (videoFrame) videoFrame.classList.remove("is-active");
   startCameraButton.disabled = gameState === "finished" || gameState === "expired" || gameState === "saved";
   startCameraButton.textContent = "カメラを起動";
   stopCameraButton.disabled = true;
@@ -341,11 +362,13 @@ function submitRecord() {
 
   pendingTimeout = window.setTimeout(() => {
     if (pendingRequestId === requestId) {
-      document.getElementById("submitStatus").textContent = "GASから応答がありません。ウェブアプリの公開設定とURLを確認してください。";
+      document.getElementById("submitStatus").textContent =
+        "GASから完了通知を受け取れませんでした。スプレッドシートに記録が追加されていないか先に確認してください。記録がなければ、GASのデプロイ設定（実行ユーザー：自分／アクセスできるユーザー：学校で許可された範囲）、/exec URL、GASの「実行数」に doPost が記録されているかを確認してください。";
       submitButton.disabled = false;
       pendingRequestId = null;
+      pendingTimeout = null;
     }
-  }, 20000);
+  }, 25000);
 }
 
 // JavaScriptが正常に読み込まれたことを画面に表示する
