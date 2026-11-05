@@ -1,6 +1,3 @@
-// ==============================
-// 脱出迷宮：QRコード・タイマー・GAS送信
-// ==============================
 const GAS_WEB_APP_URL = "https://script.google.com/a/macros/g.bears.ed.jp/s/AKfycbz_VGhmY-b_UQli7bDT9_MiCrVtTh2gU_qMDfw8X0H9xyCd-wfzy2-0AxErL8iuHcVA/exec";
 const START_QR_VALUE = "MAZE_START_V1";
 const GOAL_QR_VALUE = "MAZE_GOAL_V1";
