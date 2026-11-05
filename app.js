@@ -266,11 +266,28 @@ function handleQrCode(value) {
   setStatus("登録されていないQRコードです。");
 }
 
+// 残り時間に応じてタイマーの色を切り替える
+function updateTimerColor(remainingMs) {
+  if (!timeElement) return;
+
+  // いったん通常色に戻し、該当する色だけを適用する
+  timeElement.classList.remove("timer-warning", "timer-danger");
+
+  if (remainingMs <= 60 * 1000) {
+    // 残り1分以下：赤色
+    timeElement.classList.add("timer-danger");
+  } else if (remainingMs <= 3 * 60 * 1000) {
+    // 残り3分以下：黄色
+    timeElement.classList.add("timer-warning");
+  }
+}
+
 function startGame() {
   if (gameState !== "ready") return;
   gameState = "running";
   startTime = Date.now();
   timeElement.textContent = formatTime(LIMIT_TIME);
+  updateTimerColor(LIMIT_TIME);
   setStatus("スタートしました！ゴールQRコードを読み取ってください。");
   timerInterval = window.setInterval(updateTimer, 30);
 }
@@ -280,6 +297,7 @@ function updateTimer() {
   const elapsed = Date.now() - startTime;
   const remaining = Math.max(0, LIMIT_TIME - elapsed);
   timeElement.textContent = formatTime(remaining);
+  updateTimerColor(remaining);
   if (remaining <= 0) expireGame();
 }
 
@@ -297,6 +315,8 @@ function finishGame() {
   finalTimeMs = Math.round(elapsed);
   finalDisplayTime = formatTime(finalTimeMs);
   timeElement.textContent = finalDisplayTime;
+  // ゴール後は残り時間ではなくクリアタイムを表示するため通常色に戻す
+  updateTimerColor(LIMIT_TIME);
   setStatus("ゴールしました！ユーザー名を入力して記録してください。");
   document.getElementById("resultTime").textContent = "クリア時間：" + finalDisplayTime;
   submitArea.hidden = false;
@@ -309,6 +329,7 @@ function expireGame() {
   timerInterval = null;
   gameState = "expired";
   timeElement.textContent = "00:00.000";
+  updateTimerColor(0);
   setStatus("時間切れです。今回の記録は登録できません。");
   stopScanner();
   document.getElementById("resultHeading").textContent = "時間切れです";

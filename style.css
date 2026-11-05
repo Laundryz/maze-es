@@ -62,6 +62,18 @@ body {
   color: #8cecff;
   text-shadow: 0 0 10px rgba(0, 195, 255, 0.55), 0 0 26px rgba(0, 98, 255, 0.36);
 }
+
+/* 残り3分以下：黄色 */
+.timer.timer-warning {
+  color: #ffe66d;
+  text-shadow: 0 0 10px rgba(255, 220, 65, 0.65), 0 0 26px rgba(255, 170, 0, 0.42);
+}
+
+/* 残り1分以下：赤色 */
+.timer.timer-danger {
+  color: #ff626f;
+  text-shadow: 0 0 10px rgba(255, 70, 90, 0.70), 0 0 26px rgba(220, 20, 55, 0.50);
+}
 .status { min-height: 1.5em; margin: 8px 0 0; color: #d7e9ff; line-height: 1.6; }
 h2 { font-size: 1.2rem; margin: 0 0 16px; color: #f1f8ff; }
 h3 { margin: 0 0 12px; }
