@@ -56,28 +56,6 @@
       <p id="submitStatus" class="status" aria-live="polite"></p>
     </section>
 
-    <section id="qrPrintArea" class="qr-print-card">
-      <div class="qr-print-heading">
-        <div>
-          <h2>QRコードを作成・印刷</h2>
-          <p class="help-text">作成したQRコードを印刷し、迷路のスタート地点とゴール地点に設置してください。</p>
-        </div>
-        <button id="printQrBtn" class="secondary-button" type="button">QRコードを印刷</button>
-      </div>
-      <div class="qr-grid">
-        <article class="qr-item qr-item-start">
-          <div class="qr-role-label">スタート</div>
-          <div id="startQr" class="qr-image" role="img" aria-label="スタート用QRコード"></div>
-          <p class="qr-instruction">このQRコードを読み取ると、タイマーが開始します。</p>
-        </article>
-        <article class="qr-item qr-item-goal">
-          <div class="qr-role-label">ゴール</div>
-          <div id="goalQr" class="qr-image" role="img" aria-label="ゴール用QRコード"></div>
-          <p class="qr-instruction">このQRコードを読み取ると、タイマーが停止します。</p>
-        </article>
-      </div>
-      <p class="help-text">QRコードの内容はアプリ内で固定されています。別のQRコードを使用する場合は、app.jsのSTART_QR_VALUEとGOAL_QR_VALUEも変更してください。</p>
-    </section>
 
     <footer class="page-footer">脱出迷宮</footer>
   </main>
