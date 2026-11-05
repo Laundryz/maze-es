@@ -122,23 +122,14 @@ async function prepareQrScanner() {
 
 async function startScanner() {
   cameraErrorElement.textContent = "";
-  statusElement.textContent = "カメラの使用許可を確認しています...";
+  statusElement.textContent = "カメラを確認しています...";
 
   if (mediaStream) {
     statusElement.textContent = "カメラは起動中です。QRコードを映してください。";
     return;
   }
-
-  if (!window.isSecureContext) {
-    cameraErrorElement.textContent = "カメラにはHTTPSでアクセスしてください。現在のURL: " + location.protocol;
-    return;
-  }
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    cameraErrorElement.textContent = "このページからカメラAPIを利用できません。Chromeのサイト設定と学校の管理設定を確認してください。";
-    return;
-  }
-  if (!video || !cameraPlaceholder || !videoFrame) {
-    cameraErrorElement.textContent = "カメラ表示用のHTML要素が見つかりません。index.htmlを最新版にしてください。";
+    cameraErrorElement.textContent = "カメラの権限を確認";
     return;
   }
 
@@ -175,13 +166,9 @@ async function startScanner() {
         ? "カメラ映像を表示中です。ゴール用QRコードを読み取ってください。"
         : "カメラ映像を表示中です。スタート用QRコードを読み取ってください。";
       scanInterval = window.setInterval(scanFrame, 140);
-    } else if (scannerMode === "BarcodeDetector") {
+    } else (scannerMode === "BarcodeDetector") {
       statusElement.textContent = "カメラ映像を表示中です。Chrome標準機能でQRコードを読み取ります。";
       scanInterval = window.setInterval(scanFrame, 250);
-    } else {
-      statusElement.textContent = "カメラ映像は表示されていますが、QR読み取り機能が利用できません。ネットワークでjsQRのCDNが許可されているか確認してください。";
-      cameraErrorElement.textContent = "カメラは起動しました。QR読み取りライブラリも読み込むため、CDNへの接続が必要です。";
-    }
 
     const track = mediaStream.getVideoTracks()[0];
     if (track) {
@@ -204,18 +191,15 @@ async function startScanner() {
 
 function cameraErrorMessage(error) {
   if (error && error.name === "NotAllowedError") {
-    return "カメラへのアクセスが拒否されました。Chromeのサイト設定または学校の管理者による制限を確認してください。";
+    return "カメラへのアクセスが拒否されました。";
   }
   if (error && error.name === "NotFoundError") {
-    return "カメラが見つかりません。Chromebookのカメラアプリで動作するか確認してください。";
+    return "カメラが見つかりません。";
   }
   if (error && error.name === "NotReadableError") {
-    return "カメラを使用できません。他のアプリでカメラを使用中でないか確認してください。";
+    return "カメラを使用できません。";
   }
-  if (error && error.name === "SecurityError") {
-    return "ブラウザまたは学校の管理設定によってカメラ利用が制限されている可能性があります。";
-  }
-  return "カメラを起動できませんでした。Chromeのカメラ権限と学校の管理設定を確認してください。";
+  return "カメラを起動できませんでした。";
 }
 
 function releaseCamera() {
@@ -282,10 +266,10 @@ function handleQrCode(value) {
   }
   if (value === GOAL_QR_VALUE) {
     if (gameState === "running") finishGame();
-    else if (gameState === "ready") statusElement.textContent = "先にスタート用QRコードを読み取ってください。";
+    else if (gameState === "ready") statusElement.textContent = "先にスタートQRコードを読み取ってください。";
     return;
   }
-  statusElement.textContent = "登録されていないQRコードです。スタートまたはゴール用QRコードを読み取ってください。";
+  statusElement.textContent = "登録されていないQRコードです。";
 }
 
 function startGame() {
@@ -293,7 +277,7 @@ function startGame() {
   gameState = "running";
   startTime = Date.now();
   timeElement.textContent = formatTime(LIMIT_TIME);
-  statusElement.textContent = "スタートしました！ゴール用QRコードを読み取ってください。";
+  statusElement.textContent = "スタートしました！ゴールQRコードを読み取ってください。";
   timerInterval = window.setInterval(updateTimer, 30);
 }
 
@@ -319,7 +303,7 @@ function finishGame() {
   finalTimeMs = Math.round(elapsed);
   finalDisplayTime = formatTime(finalTimeMs);
   timeElement.textContent = finalDisplayTime;
-  statusElement.textContent = "ゴールしました！ユーザー名を入力して記録してください。";
+  statusElement.textContent = "ユーザー名を入力して記録してください。";
   document.getElementById("resultTime").textContent = "クリア時間：" + finalDisplayTime;
   submitArea.hidden = false;
   stopScanner();
@@ -331,7 +315,7 @@ function expireGame() {
   timerInterval = null;
   gameState = "expired";
   timeElement.textContent = "00:00.000";
-  statusElement.textContent = "時間切れです。今回の記録は登録できません。";
+  statusElement.textContent = "時間切れです。";
   stopScanner();
   document.getElementById("resultHeading").textContent = "時間切れです";
   submitArea.hidden = true;
@@ -374,11 +358,6 @@ window.addEventListener("message", function(event) {
 
 function submitRecord() {
   if (gameState !== "finished" || !finalTimeMs) return;
-
-  if (!GAS_WEB_APP_URL.startsWith("https://script.google.com/macros/s/") || !GAS_WEB_APP_URL.endsWith("/exec")) {
-    document.getElementById("submitStatus").textContent = "app.jsのGAS_WEB_APP_URLに、デプロイしたウェブアプリの /exec URLを設定してください。";
-    return;
-  }
 
   const name = document.getElementById("playerName").value.trim() || "名無しプレイヤー";
   const requestId = Date.now().toString(36) + Math.random().toString(36).slice(2);
