@@ -165,9 +165,10 @@ button:disabled { opacity: 0.48; cursor: not-allowed; }
   margin-top: 14px;
   background: linear-gradient(135deg, #078a83, #18ae9d);
   color: #fff;
-  box-shadow: 0 0 14px rgba(0, 220, 190, 0.20);     
+  box-shadow: 0 0 14px rgba(0, 220, 190, 0.20);
+  text-align: center;
 }
-/* エラー表示：空のときは領域を作らず、表示が必要なときだけフッター直前に出す */
+/* エラー表示 */
 .error-message {
   color: #ff969e;
   overflow-wrap: anywhere;
