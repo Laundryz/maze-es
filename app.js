@@ -166,7 +166,7 @@ async function startScanner() {
         ? "カメラ映像を表示中です。ゴール用QRコードを読み取ってください。"
         : "カメラ映像を表示中です。スタート用QRコードを読み取ってください。";
       scanInterval = window.setInterval(scanFrame, 140);
-    } else (scannerMode === "BarcodeDetector") {
+    } else if (scannerMode === "BarcodeDetector") {
       statusElement.textContent = "カメラ映像を表示中です。Chrome標準機能でQRコードを読み取ります。";
       scanInterval = window.setInterval(scanFrame, 250);
 
