@@ -40,7 +40,6 @@
         <button id="startCameraBtn" class="primary-button" type="button">カメラを起動</button>
         <button id="stopCameraBtn" class="secondary-button" type="button" disabled>カメラを停止</button>
       </div>
-      <p id="cameraError" class="error-message" role="alert" aria-live="polite"></p>
       <p class="help-text">カメラを起動し、QRコードをカメラに映してください。スタートを読み取った後もカメラは起動したままです。</p>
     </section>
 
@@ -52,6 +51,9 @@
       <button id="submitBtn" class="success-button" type="button">ランキングに登録</button>
       <p id="submitStatus" class="status" aria-live="polite"></p>
     </section>
+
+    <!-- エラーが発生した場合だけ、フッターの直前に表示します -->
+    <p id="cameraError" class="error-message" role="alert" aria-live="polite"></p>
 
     <footer class="page-footer">脱出迷宮</footer>
   </main>
