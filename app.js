@@ -33,27 +33,6 @@ function setCameraError(message) {
   if (cameraErrorElement) cameraErrorElement.textContent = message || "";
 }
 
-function createQrCodes() {
-  const startQr = document.getElementById("startQr");
-  const goalQr = document.getElementById("goalQr");
-  if (typeof window.QRCode === "undefined") {
-    if (startQr) startQr.textContent = "QR生成ライブラリを読み込めません。";
-    if (goalQr) goalQr.textContent = "QR生成ライブラリを読み込めません。";
-    return;
-  }
-
-  new QRCode(startQr, {
-    text: START_QR_VALUE, width: 220, height: 220,
-    colorDark: "#000000", colorLight: "#ffffff",
-    correctLevel: QRCode.CorrectLevel.M
-  });
-  new QRCode(goalQr, {
-    text: GOAL_QR_VALUE, width: 220, height: 220,
-    colorDark: "#000000", colorLight: "#ffffff",
-    correctLevel: QRCode.CorrectLevel.M
-  });
-}
-
 function setCameraPreviewVisible(visible) {
   if (!cameraPlaceholder || !video) return;
 
