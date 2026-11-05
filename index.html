@@ -21,26 +21,23 @@
 
     <section class="scanner-card">
       <h2>QRコード読み取り</h2>
-      <div class="video-frame">
-        <video id="cameraPreview" autoplay muted playsinline></video>
+      <div id="videoFrame" class="video-frame">
         <div id="cameraPlaceholder" class="camera-placeholder">
+          <!-- カメラ映像をこのエリア内に表示します -->
+          <video
+            id="cameraPreview"
+            class="camera-preview"
+            autoplay
+            muted
+            playsinline
+            aria-label="カメラプレビュー"></video>
 
-  <!-- カメラ映像を表示する場所 -->
-  <video
-    id="cameraPreview"
-    class="camera-preview"
-    autoplay
-    playsinline
-    muted>
-  </video>
-
-  <!-- カメラ停止中に表示するメッセージ -->
-  <div id="cameraPlaceholderMessage" class="camera-placeholder-message">
-    <span class="camera-icon" aria-hidden="true">▣</span>
-    <span>カメラは停止中です</span>
-  </div>
-
-</div>
+          <!-- カメラ停止中だけ表示するメッセージ -->
+          <div id="cameraPlaceholderMessage" class="camera-placeholder-message">
+            <span class="camera-icon" aria-hidden="true">▣</span>
+            <span>カメラは停止中です</span>
+          </div>
+        </div>
       </div>
       <div class="button-row">
         <button id="startCameraBtn" class="primary-button" type="button">カメラを起動</button>

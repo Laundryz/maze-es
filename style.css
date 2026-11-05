@@ -6,16 +6,8 @@
 
 * { box-sizing: border-box; }
 
-body {
-  margin: 0;
-  padding: 24px 14px 40px;
-}
-
-.app-container {
-  width: min(760px, 100%);
-  margin: 0 auto;
-}
-
+body { margin: 0; padding: 24px 14px 40px; }
+.app-container { width: min(760px, 100%); margin: 0 auto; }
 .page-header { text-align: center; margin-bottom: 22px; }
 .page-header h1 { margin: 0 0 8px; font-size: 2rem; }
 .page-header p, .help-text { color: #606770; line-height: 1.6; }
@@ -39,7 +31,6 @@ body {
   margin: 8px 0 12px;
 }
 .status { min-height: 1.5em; margin: 8px 0 0; color: #344054; }
-
 h2 { font-size: 1.2rem; margin: 0 0 16px; }
 h3 { margin: 0 0 12px; }
 
@@ -47,20 +38,13 @@ h3 { margin: 0 0 12px; }
   position: relative;
   overflow: hidden;
   width: 100%;
-  min-height: 220px;
-  aspect-ratio: 4 / 3;
+  height: clamp(220px, 65vw, 420px);
   border-radius: 10px;
   background: #161b22;
+  isolation: isolate;
 }
 
-#cameraPreview {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scaleX(1);
-}
-
+/* カメラ表示領域。videoと停止中メッセージを同じ場所に重ねる */
 .camera-placeholder {
   position: absolute;
   inset: 0;
@@ -71,6 +55,42 @@ h3 { margin: 0 0 12px; }
   gap: 12px;
   color: #fff;
   background: #222831;
+  overflow: hidden;
+}
+
+/* カメラ映像：起動前は非表示 */
+.camera-preview {
+  position: absolute;
+  inset: 0;
+  display: none;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #161b22;
+  z-index: 1;
+}
+
+/* 起動中は同じcameraPlaceholder内に映像を表示 */
+.camera-placeholder.is-active .camera-preview {
+  display: block;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* 起動中は停止中メッセージだけを隠す */
+.camera-placeholder-message {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
+}
+
+.camera-placeholder.is-active .camera-placeholder-message {
+  display: none !important;
 }
 
 .camera-icon { font-size: 3rem; }
@@ -87,27 +107,17 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .primary-button { background: #1769d2; color: #fff; }
 .secondary-button { background: #e8edf3; color: #253041; }
 .success-button { width: 100%; margin-top: 14px; background: #218838; color: #fff; }
-
-.error-message { color: #b42318; min-height: 1.4em; }
+.error-message { color: #b42318; min-height: 1.4em; overflow-wrap: anywhere; }
 .submit-card label { display: block; margin: 12px 0 6px; font-weight: 700; }
 .submit-card input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #cbd2d9;
-  border-radius: 7px;
-  font-size: 1rem;
+  width: 100%; padding: 12px; border: 1px solid #cbd2d9;
+  border-radius: 7px; font-size: 1rem;
 }
 .result-time { font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-
 .qr-print-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .qr-print-heading .help-text { margin-top: -6px; }
 .qr-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.qr-item {
-  border: 1px solid #e1e5e9;
-  border-radius: 10px;
-  padding: 16px 10px;
-  text-align: center;
-}
+.qr-item { border: 1px solid #e1e5e9; border-radius: 10px; padding: 16px 10px; text-align: center; }
 .qr-item p { font-weight: 700; letter-spacing: 0.12em; }
 .qr-image { min-height: 200px; display: flex; justify-content: center; align-items: center; }
 .qr-image img, .qr-image canvas { max-width: 100%; height: auto; }
@@ -132,47 +142,4 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   .qr-item { break-inside: avoid; border: 1px solid #333; }
   .qr-image { min-height: 240px; }
   .qr-image img, .qr-image canvas { width: 220px !important; height: 220px !important; }
-}
-
-/* カメラ表示エリア */
-.camera-placeholder {
-  position: relative;
-  width: 100%;
-  min-height: 240px;
-  aspect-ratio: 4 / 3;
-  background-color: #222;
-  overflow: hidden;
-  border-radius: 10px;
-}
-
-/* カメラ映像 */
-.camera-preview {
-  display: none;
-  width: 100%;
-  height: 100%;
-  min-height: 240px;
-  object-fit: cover;
-}
-
-/* カメラ起動中 */
-.camera-placeholder.is-active .camera-preview {
-  display: block;
-}
-
-/* 停止中のメッセージ */
-.camera-placeholder-message {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  color: white;
-  font-size: 16px;
-}
-
-/* 起動したら停止中の文字を消す */
-.camera-placeholder.is-active .camera-placeholder-message {
-  display: none;
 }

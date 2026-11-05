@@ -1,3 +1,9 @@
+/* =========================================================
+   脱出迷宮：GitHub Pages版
+   - カメラ映像の表示をQRライブラリの読み込み状態から分離
+   - jsQRが使えない場合は、対応ブラウザでBarcodeDetectorを利用
+   ========================================================= */
+
 const GAS_WEB_APP_URL = "ここにGASウェブアプリの_exec_URLを貼り付ける";
 const START_QR_VALUE = "MAZE_START_V1";
 const GOAL_QR_VALUE = "MAZE_GOAL_V1";
@@ -8,6 +14,8 @@ let startTime = null;
 let timerInterval = null;
 let mediaStream = null;
 let scanInterval = null;
+let scanBusy = false;
+let nativeBarcodeDetector = null;
 let lastQrAt = 0;
 let finalTimeMs = 0;
 let finalDisplayTime = "";
@@ -16,54 +24,127 @@ let pendingTimeout = null;
 
 const video = document.getElementById("cameraPreview");
 const canvas = document.getElementById("scanCanvas");
-const canvasContext = canvas.getContext("2d", { willReadFrequently: true });
+const canvasContext = canvas ? canvas.getContext("2d", { willReadFrequently: true }) : null;
 const timeElement = document.getElementById("time");
 const statusElement = document.getElementById("gameStatus");
 const cameraErrorElement = document.getElementById("cameraError");
 const startCameraButton = document.getElementById("startCameraBtn");
 const stopCameraButton = document.getElementById("stopCameraBtn");
 const cameraPlaceholder = document.getElementById("cameraPlaceholder");
+const videoFrame = document.getElementById("videoFrame");
 const submitArea = document.getElementById("submitArea");
 const submitButton = document.getElementById("submitBtn");
 
-// QRコードを画面に作成する
 function createQrCodes() {
-  if (typeof QRCode === "undefined") {
-    document.getElementById("startQr").textContent = "QRコード生成ライブラリを読み込めませんでした。インターネット接続を確認してください。";
-    document.getElementById("goalQr").textContent = "QRコード生成ライブラリを読み込めませんでした。";
+  const startQr = document.getElementById("startQr");
+  const goalQr = document.getElementById("goalQr");
+  if (typeof window.QRCode === "undefined") {
+    if (startQr) startQr.textContent = "QR生成ライブラリを読み込めません。";
+    if (goalQr) goalQr.textContent = "QR生成ライブラリを読み込めません。";
     return;
   }
 
-  new QRCode(document.getElementById("startQr"), {
-    text: START_QR_VALUE,
-    width: 220,
-    height: 220,
-    colorDark: "#000000",
-    colorLight: "#ffffff",
+  new QRCode(startQr, {
+    text: START_QR_VALUE, width: 220, height: 220,
+    colorDark: "#000000", colorLight: "#ffffff",
     correctLevel: QRCode.CorrectLevel.M
   });
-
-  new QRCode(document.getElementById("goalQr"), {
-    text: GOAL_QR_VALUE,
-    width: 220,
-    height: 220,
-    colorDark: "#000000",
-    colorLight: "#ffffff",
+  new QRCode(goalQr, {
+    text: GOAL_QR_VALUE, width: 220, height: 220,
+    colorDark: "#000000", colorLight: "#ffffff",
     correctLevel: QRCode.CorrectLevel.M
   });
 }
 
-// カメラを起動（ボタン操作から呼び出す）
-async function startScanner() {
-  cameraErrorElement.textContent = "";
+function setCameraPreviewVisible(visible) {
+  if (!cameraPlaceholder || !video) return;
 
-  if (mediaStream) return;
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    cameraErrorElement.textContent = "このページではカメラを利用できません。localhostまたはHTTPSで開いてください。";
+  // 親要素は隠さず、停止中メッセージと映像だけを切り替える
+  cameraPlaceholder.hidden = false;
+  cameraPlaceholder.classList.toggle("is-active", Boolean(visible));
+
+  if (visible) {
+    video.style.setProperty("visibility", "visible", "important");
+    video.style.setProperty("opacity", "1", "important");
+  } else {
+    video.style.setProperty("visibility", "hidden", "important");
+    video.style.setProperty("opacity", "0", "important");
+  }
+}
+async function waitForVideoReady(timeoutMs = 10000) {
+  if (video.videoWidth > 0 && video.videoHeight > 0 && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
     return;
   }
-  if (typeof window.jsQR !== "function") {
-    cameraErrorElement.textContent = "QRコード読み取りライブラリを読み込めませんでした。インターネット接続を確認してください。";
+
+  await new Promise((resolve, reject) => {
+    let timeoutId;
+    const cleanup = () => {
+      clearTimeout(timeoutId);
+      video.removeEventListener("loadedmetadata", check);
+      video.removeEventListener("loadeddata", check);
+      video.removeEventListener("canplay", check);
+      video.removeEventListener("error", onError);
+    };
+    const check = () => {
+      if (video.videoWidth > 0 && video.videoHeight > 0 && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        cleanup();
+        resolve();
+      }
+    };
+    const onError = () => {
+      cleanup();
+      reject(new Error("video要素でカメラ映像を読み込めませんでした。"));
+    };
+
+    video.addEventListener("loadedmetadata", check);
+    video.addEventListener("loadeddata", check);
+    video.addEventListener("canplay", check);
+    video.addEventListener("error", onError);
+    timeoutId = setTimeout(() => {
+      cleanup();
+      reject(new Error("カメラは取得できましたが、映像の準備が10秒以内に完了しませんでした。"));
+    }, timeoutMs);
+    check();
+  });
+}
+
+async function prepareQrScanner() {
+  if (typeof window.jsQR === "function") {
+    return "jsQR";
+  }
+
+  // CDNからjsQRを読み込めない場合、Chrome標準APIを代替として試す
+  if ("BarcodeDetector" in window) {
+    try {
+      nativeBarcodeDetector = new BarcodeDetector({ formats: ["qr_code"] });
+      return "BarcodeDetector";
+    } catch (error) {
+      nativeBarcodeDetector = null;
+    }
+  }
+
+  return "preview-only";
+}
+
+async function startScanner() {
+  cameraErrorElement.textContent = "";
+  statusElement.textContent = "カメラの使用許可を確認しています...";
+
+  if (mediaStream) {
+    statusElement.textContent = "カメラは起動中です。QRコードを映してください。";
+    return;
+  }
+
+  if (!window.isSecureContext) {
+    cameraErrorElement.textContent = "カメラにはHTTPSでアクセスしてください。現在のURL: " + location.protocol;
+    return;
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    cameraErrorElement.textContent = "このページからカメラAPIを利用できません。Chromeのサイト設定と学校の管理設定を確認してください。";
+    return;
+  }
+  if (!video || !cameraPlaceholder || !videoFrame) {
+    cameraErrorElement.textContent = "カメラ表示用のHTML要素が見つかりません。index.htmlを最新版にしてください。";
     return;
   }
 
@@ -71,108 +152,150 @@ async function startScanner() {
   startCameraButton.textContent = "カメラ起動中...";
 
   try {
-    try {
-      mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
-        audio: false
-      });
-    } catch (firstError) {
-      // Chromebookのカメラがenvironment指定に対応しない場合の再試行
-      mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-    }
+    // Chromebookの内蔵カメラを取得。背面カメラ指定は行わない。
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
 
+    video.muted = true;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.setAttribute("muted", "");
+    video.setAttribute("autoplay", "");
+    video.setAttribute("playsinline", "");
     video.srcObject = mediaStream;
+
+    statusElement.textContent = "カメラを取得しました。映像を準備しています...";
     await video.play();
-    cameraPlaceholder.hidden = true;
+    await waitForVideoReady();
+
+    // cameraPlaceholder全体は残し、内部の停止中メッセージだけを隠して映像を表示
+    setCameraPreviewVisible(true);
     stopCameraButton.disabled = false;
     startCameraButton.textContent = "カメラ起動中";
-    statusElement.textContent = gameState === "running"
-      ? "ゴール用QRコードを読み取ってください。"
-      : "スタート用QRコードを読み取ってください。";
 
-    scanInterval = window.setInterval(scanFrame, 140);
+    const scannerMode = await prepareQrScanner();
+    if (scannerMode === "jsQR") {
+      statusElement.textContent = gameState === "running"
+        ? "カメラ映像を表示中です。ゴール用QRコードを読み取ってください。"
+        : "カメラ映像を表示中です。スタート用QRコードを読み取ってください。";
+      scanInterval = window.setInterval(scanFrame, 140);
+    } else if (scannerMode === "BarcodeDetector") {
+      statusElement.textContent = "カメラ映像を表示中です。Chrome標準機能でQRコードを読み取ります。";
+      scanInterval = window.setInterval(scanFrame, 250);
+    } else {
+      statusElement.textContent = "カメラ映像は表示されていますが、QR読み取り機能が利用できません。ネットワークでjsQRのCDNが許可されているか確認してください。";
+      cameraErrorElement.textContent = "カメラは起動しました。QR読み取りライブラリも読み込むため、CDNへの接続が必要です。";
+    }
+
+    const track = mediaStream.getVideoTracks()[0];
+    if (track) {
+      track.addEventListener("ended", () => {
+        if (mediaStream) stopScanner();
+        cameraErrorElement.textContent = "カメラ映像が終了しました。もう一度起動してください。";
+      }, { once: true });
+    }
   } catch (error) {
-    mediaStream = null;
+    releaseCamera();
+    setCameraPreviewVisible(false);
     startCameraButton.disabled = false;
     startCameraButton.textContent = "カメラを起動";
-    cameraErrorElement.textContent = cameraErrorMessage(error);
+    cameraErrorElement.textContent = cameraErrorMessage(error) +
+      "（" + (error && error.name ? error.name : "UnknownError") +
+      (error && error.message ? ": " + error.message : "") + "）";
+    statusElement.textContent = "カメラを起動できませんでした。表示されたエラーを確認してください。";
   }
 }
 
 function cameraErrorMessage(error) {
   if (error && error.name === "NotAllowedError") {
-    return "カメラの使用が許可されていません。Chromeのサイト設定でカメラを許可してください。";
+    return "カメラへのアクセスが拒否されました。Chromeのサイト設定または学校の管理者による制限を確認してください。";
   }
   if (error && error.name === "NotFoundError") {
-    return "カメラが見つかりません。Chromebookのカメラが使用できるか確認してください。";
+    return "カメラが見つかりません。Chromebookのカメラアプリで動作するか確認してください。";
   }
-  return "カメラを起動できませんでした。ほかのアプリでカメラを使用していないか確認してください。";
+  if (error && error.name === "NotReadableError") {
+    return "カメラを使用できません。他のアプリでカメラを使用中でないか確認してください。";
+  }
+  if (error && error.name === "SecurityError") {
+    return "ブラウザまたは学校の管理設定によってカメラ利用が制限されている可能性があります。";
+  }
+  return "カメラを起動できませんでした。Chromeのカメラ権限と学校の管理設定を確認してください。";
 }
 
-// カメラを停止する
+function releaseCamera() {
+  if (mediaStream) {
+    mediaStream.getTracks().forEach(track => track.stop());
+    mediaStream = null;
+  }
+  if (video) {
+    video.pause();
+    video.srcObject = null;
+  }
+}
+
 function stopScanner() {
   if (scanInterval !== null) {
     clearInterval(scanInterval);
     scanInterval = null;
   }
-  if (mediaStream) {
-    mediaStream.getTracks().forEach(track => track.stop());
-    mediaStream = null;
-  }
-  video.srcObject = null;
-  cameraPlaceholder.hidden = false;
-  startCameraButton.disabled = gameState === "finished" || gameState === "expired" || gameState === "saved";
+  releaseCamera();
+  setCameraPreviewVisible(false);
+  startCameraButton.disabled = ["finished", "expired", "saved"].includes(gameState);
   startCameraButton.textContent = "カメラを起動";
   stopCameraButton.disabled = true;
 }
 
-// カメラ映像からQRコードを探す
-function scanFrame() {
-  if (!mediaStream || video.readyState !== video.HAVE_ENOUGH_DATA || video.videoWidth === 0) return;
+async function scanFrame() {
+  if (!mediaStream || scanBusy || !video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || video.videoWidth === 0) return;
+  scanBusy = true;
 
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  const imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
-  const qr = window.jsQR(imageData.data, imageData.width, imageData.height, {
-    inversionAttempts: "dontInvert"
-  });
-
-  if (qr && qr.data) {
-    const now = Date.now();
-    if (now - lastQrAt > 1200) {
-      lastQrAt = now;
-      handleQrCode(qr.data.trim());
+  try {
+    let decodedValue = "";
+    if (typeof window.jsQR === "function" && canvasContext) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
+      const qr = window.jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: "dontInvert"
+      });
+      if (qr && qr.data) decodedValue = qr.data.trim();
+    } else if (nativeBarcodeDetector) {
+      const codes = await nativeBarcodeDetector.detect(video);
+      if (codes && codes.length > 0 && codes[0].rawValue) decodedValue = codes[0].rawValue.trim();
     }
+
+    if (decodedValue) {
+      const now = Date.now();
+      if (now - lastQrAt > 1200) {
+        lastQrAt = now;
+        handleQrCode(decodedValue);
+      }
+    }
+  } catch (error) {
+    // 1フレームの読み取り失敗ではカメラを停止しない
+  } finally {
+    scanBusy = false;
   }
 }
 
-// START / GOALを判定
 function handleQrCode(value) {
   if (value === START_QR_VALUE) {
-    if (gameState === "ready") {
-      startGame();
-    }
+    if (gameState === "ready") startGame();
     return;
   }
-
   if (value === GOAL_QR_VALUE) {
-    if (gameState === "running") {
-      finishGame();
-    } else if (gameState === "ready") {
-      statusElement.textContent = "先にスタート用QRコードを読み取ってください。";
-    }
+    if (gameState === "running") finishGame();
+    else if (gameState === "ready") statusElement.textContent = "先にスタート用QRコードを読み取ってください。";
     return;
   }
-
   statusElement.textContent = "登録されていないQRコードです。スタートまたはゴール用QRコードを読み取ってください。";
 }
 
-// スタートQR読み取り時
 function startGame() {
   if (gameState !== "ready") return;
-
   gameState = "running";
   startTime = Date.now();
   timeElement.textContent = formatTime(LIMIT_TIME);
@@ -180,23 +303,16 @@ function startGame() {
   timerInterval = window.setInterval(updateTimer, 30);
 }
 
-// タイマー更新
 function updateTimer() {
   if (gameState !== "running" || startTime === null) return;
-
   const elapsed = Date.now() - startTime;
   const remaining = Math.max(0, LIMIT_TIME - elapsed);
   timeElement.textContent = formatTime(remaining);
-
-  if (remaining <= 0) {
-    expireGame();
-  }
+  if (remaining <= 0) expireGame();
 }
 
-// GOAL QR読み取り時
 function finishGame() {
   if (gameState !== "running" || startTime === null) return;
-
   const elapsed = Date.now() - startTime;
   if (elapsed >= LIMIT_TIME) {
     expireGame();
@@ -208,7 +324,6 @@ function finishGame() {
   gameState = "finished";
   finalTimeMs = Math.round(elapsed);
   finalDisplayTime = formatTime(finalTimeMs);
-
   timeElement.textContent = finalDisplayTime;
   statusElement.textContent = "ゴールしました！ユーザー名を入力して記録してください。";
   document.getElementById("resultTime").textContent = "クリア時間：" + finalDisplayTime;
@@ -216,10 +331,8 @@ function finishGame() {
   stopScanner();
 }
 
-// 8分経過
 function expireGame() {
   if (gameState !== "running") return;
-
   clearInterval(timerInterval);
   timerInterval = null;
   gameState = "expired";
@@ -240,13 +353,12 @@ function formatTime(milliseconds) {
     String(remainder).padStart(3, "0");
 }
 
-// GASのdoPostから返る結果を受け取る
 window.addEventListener("message", function(event) {
   const allowedOrigin = event.origin === "https://script.google.com" ||
     event.origin === "https://googleusercontent.com" ||
     event.origin.endsWith(".googleusercontent.com");
-
   if (!allowedOrigin) return;
+
   const data = event.data;
   if (!data || data.type !== "MAZE_SAVE_RESULT" || data.requestId !== pendingRequestId) return;
 
@@ -254,7 +366,6 @@ window.addEventListener("message", function(event) {
     clearTimeout(pendingTimeout);
     pendingTimeout = null;
   }
-
   if (data.ok) {
     gameState = "saved";
     submitButton.disabled = true;
@@ -267,7 +378,6 @@ window.addEventListener("message", function(event) {
   pendingRequestId = null;
 });
 
-// GASにフォーム形式でPOSTする（ブラウザのCORS制限を避ける方法）
 function submitRecord() {
   if (gameState !== "finished" || !finalTimeMs) return;
 
@@ -276,8 +386,7 @@ function submitRecord() {
     return;
   }
 
-  const nameInput = document.getElementById("playerName");
-  const name = nameInput.value.trim() || "名無しプレイヤー";
+  const name = document.getElementById("playerName").value.trim() || "名無しプレイヤー";
   const requestId = Date.now().toString(36) + Math.random().toString(36).slice(2);
   pendingRequestId = requestId;
   submitButton.disabled = true;
@@ -290,13 +399,7 @@ function submitRecord() {
   form.acceptCharset = "UTF-8";
   form.style.display = "none";
 
-  const values = {
-    action: "saveRecord",
-    requestId: requestId,
-    name: name,
-    timeMs: String(finalTimeMs)
-  };
-
+  const values = { action: "saveRecord", requestId, name, timeMs: String(finalTimeMs) };
   Object.entries(values).forEach(([key, value]) => {
     const input = document.createElement("input");
     input.type = "hidden";
@@ -304,23 +407,46 @@ function submitRecord() {
     input.value = value;
     form.appendChild(input);
   });
-
   document.body.appendChild(form);
   form.submit();
   window.setTimeout(() => form.remove(), 2000);
 
   pendingTimeout = window.setTimeout(() => {
     if (pendingRequestId === requestId) {
-      document.getElementById("submitStatus").textContent = "GASから応答がありません。ウェブアプリの公開設定とURLを確認してください。";
+      document.getElementById("submitStatus").textContent =
+        "GASから完了通知を受け取れませんでした。再送信前にスプレッドシートを確認してください。";
       submitButton.disabled = false;
       pendingRequestId = null;
+      pendingTimeout = null;
     }
-  }, 20000);
+  }, 25000);
 }
 
-startCameraButton.addEventListener("click", startScanner);
-stopCameraButton.addEventListener("click", stopScanner);
-submitButton.addEventListener("click", submitRecord);
-document.getElementById("printQrBtn").addEventListener("click", () => window.print());
+function initializeMazeApp() {
+  if (!startCameraButton || !stopCameraButton || !submitButton || !statusElement || !cameraErrorElement) {
+    if (statusElement) statusElement.textContent = "HTMLの一部が見つかりません。index.htmlを最新版にしてください。";
+    return;
+  }
 
-createQrCodes();
+  setCameraPreviewVisible(false);
+  statusElement.textContent = "準備完了です。「カメラを起動」を押してください。";
+  startCameraButton.addEventListener("click", startScanner);
+  stopCameraButton.addEventListener("click", stopScanner);
+  submitButton.addEventListener("click", submitRecord);
+
+  const printButton = document.getElementById("printQrBtn");
+  if (printButton) printButton.addEventListener("click", () => window.print());
+  createQrCodes();
+}
+
+window.addEventListener("error", function(event) {
+  if (cameraErrorElement) {
+    cameraErrorElement.textContent = "JavaScriptエラー: " + (event.message || "スクリプトを実行できませんでした。");
+  }
+});
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeMazeApp, { once: true });
+} else {
+  initializeMazeApp();
+}
