@@ -65,15 +65,15 @@
         <button id="printQrBtn" class="secondary-button" type="button">QRコードを印刷</button>
       </div>
       <div class="qr-grid">
-        <article class="qr-item">
-          <h3>スタート用</h3>
-          <div id="startQr" class="qr-image" aria-label="スタート用QRコード"></div>
-          <p>START</p>
+        <article class="qr-item qr-item-start">
+          <div class="qr-role-label">スタート</div>
+          <div id="startQr" class="qr-image" role="img" aria-label="スタート用QRコード"></div>
+          <p class="qr-instruction">このQRコードを読み取ると、タイマーが開始します。</p>
         </article>
-        <article class="qr-item">
-          <h3>ゴール用</h3>
-          <div id="goalQr" class="qr-image" aria-label="ゴール用QRコード"></div>
-          <p>GOAL</p>
+        <article class="qr-item qr-item-goal">
+          <div class="qr-role-label">ゴール</div>
+          <div id="goalQr" class="qr-image" role="img" aria-label="ゴール用QRコード"></div>
+          <p class="qr-instruction">このQRコードを読み取ると、タイマーが停止します。</p>
         </article>
       </div>
       <p class="help-text">QRコードの内容はアプリ内で固定されています。別のQRコードを使用する場合は、app.jsのSTART_QR_VALUEとGOAL_QR_VALUEも変更してください。</p>
