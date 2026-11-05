@@ -1,9 +1,3 @@
-/* =========================================================
-   脱出迷宮：ローカルブラウザ版
-   1) GAS_WEB_APP_URL にGASウェブアプリの /exec URLを設定
-   2) START_QR_VALUE / GOAL_QR_VALUE はQR印刷ページと共通の値
-   ========================================================= */
-
 const GAS_WEB_APP_URL = "ここにGASウェブアプリの_exec_URLを貼り付ける";
 const START_QR_VALUE = "MAZE_START_V1";
 const GOAL_QR_VALUE = "MAZE_GOAL_V1";
