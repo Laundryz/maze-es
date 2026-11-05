@@ -154,12 +154,13 @@ button:disabled { opacity: 0.48; cursor: not-allowed; }
   background: linear-gradient(135deg, #087bd7, #04a8d7);
   color: #fff;
   box-shadow: 0 0 14px rgba(0, 165, 255, 0.22);
+  position: relative;
 }
 .secondary-button {
   background: rgba(31, 49, 78, 0.9);
   color: #eaf5ff;
   border-color: rgba(125, 190, 255, 0.35);
-  text-align: center;
+  position: relative;
 }
 .success-button {
   width: 100%;
