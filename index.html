@@ -23,7 +23,6 @@
       <h2>QRコード読み取り</h2>
       <div id="videoFrame" class="video-frame">
         <div id="cameraPlaceholder" class="camera-placeholder">
-          <!-- カメラ映像をこのエリア内に表示します -->
           <video
             id="cameraPreview"
             class="camera-preview"
@@ -31,8 +30,6 @@
             muted
             playsinline
             aria-label="カメラプレビュー"></video>
-
-          <!-- カメラ停止中だけ表示するメッセージ -->
           <div id="cameraPlaceholderMessage" class="camera-placeholder-message">
             <span class="camera-icon" aria-hidden="true">▣</span>
             <span>カメラは停止中です</span>
@@ -43,8 +40,9 @@
         <button id="startCameraBtn" class="primary-button" type="button">カメラを起動</button>
         <button id="stopCameraBtn" class="secondary-button" type="button" disabled>カメラを停止</button>
       </div>
+      <!-- JavaScriptが参照するエラー表示欄。これがないと初期化が中断します。 -->
+      <p id="cameraError" class="error-message" role="alert" aria-live="polite"></p>
       <p class="help-text">カメラを起動し、QRコードをカメラに映してください。スタートを読み取った後もカメラは起動したままです。</p>
-      <p id="cameraError" class="error-message"></p>
     </section>
 
     <section id="submitArea" class="submit-card" hidden>
@@ -56,15 +54,12 @@
       <p id="submitStatus" class="status" aria-live="polite"></p>
     </section>
 
-
     <footer class="page-footer">脱出迷宮</footer>
   </main>
 
-  <!-- GASへの送信結果を受け取るための非表示フレーム -->
   <iframe name="gasResultFrame" id="gasResultFrame" title="送信結果" class="hidden-frame"></iframe>
   <canvas id="scanCanvas" hidden></canvas>
 
-  <!-- QRコード読み取り・生成ライブラリ（利用にはインターネット接続が必要） -->
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="app.js"></script>

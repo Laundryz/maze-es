@@ -29,6 +29,10 @@ const videoFrame = document.getElementById("videoFrame");
 const submitArea = document.getElementById("submitArea");
 const submitButton = document.getElementById("submitBtn");
 
+function setCameraError(message) {
+  if (cameraErrorElement) cameraErrorElement.textContent = message || "";
+}
+
 function createQrCodes() {
   const startQr = document.getElementById("startQr");
   const goalQr = document.getElementById("goalQr");
@@ -169,12 +173,15 @@ async function startScanner() {
     } else if (scannerMode === "BarcodeDetector") {
       statusElement.textContent = "カメラ映像を表示中です。Chrome標準機能でQRコードを読み取ります。";
       scanInterval = window.setInterval(scanFrame, 250);
+    } else {
+      statusElement.textContent = "カメラ映像は表示されていますが、QRコード読み取り機能を利用できません。ネット接続を確認してください。";
+    }
 
     const track = mediaStream.getVideoTracks()[0];
     if (track) {
       track.addEventListener("ended", () => {
         if (mediaStream) stopScanner();
-        cameraErrorElement.textContent = "カメラ映像が終了しました。もう一度起動してください。";
+        setCameraError("カメラ映像が終了しました。もう一度起動してください。");
       }, { once: true });
     }
   } catch (error) {
@@ -182,9 +189,9 @@ async function startScanner() {
     setCameraPreviewVisible(false);
     startCameraButton.disabled = false;
     startCameraButton.textContent = "カメラを起動";
-    cameraErrorElement.textContent = cameraErrorMessage(error) +
+    setCameraError(cameraErrorMessage(error) +
       "（" + (error && error.name ? error.name : "UnknownError") +
-      (error && error.message ? ": " + error.message : "") + "）";
+      (error && error.message ? ": " + error.message : "") + "）");
     statusElement.textContent = "カメラを起動できませんでした。表示されたエラーを確認してください。";
   }
 }
@@ -396,8 +403,9 @@ function submitRecord() {
 }
 
 function initializeMazeApp() {
-  if (!startCameraButton || !stopCameraButton || !submitButton || !statusElement || !cameraErrorElement) {
-    if (statusElement) statusElement.textContent = "HTMLの一部が見つかりません。index.htmlを最新版にしてください。";
+  if (!startCameraButton || !stopCameraButton || !submitButton || !statusElement || !video || !cameraPlaceholder) {
+    if (statusElement) statusElement.textContent = "HTMLの必要な要素が見つかりません。index.htmlを最新版にしてください。";
+    setCameraError("HTMLの必要な要素が見つからないため、カメラを初期化できません。");
     return;
   }
 
@@ -414,7 +422,7 @@ function initializeMazeApp() {
 
 window.addEventListener("error", function(event) {
   if (cameraErrorElement) {
-    cameraErrorElement.textContent = "JavaScriptエラー: " + (event.message || "スクリプトを実行できませんでした。");
+    setCameraError("JavaScriptエラー: " + (event.message || "スクリプトを実行できませんでした。"));
   }
 });
 
