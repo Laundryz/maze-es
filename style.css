@@ -274,9 +274,30 @@ button:disabled { opacity: 0.48; cursor: not-allowed; }
   .qr-instruction { color: #111; }
 }
 
+/* タイトル文字の代わりにロゴ画像を表示（元の見出し文字と同じ高さ） */
+.page-header h1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: clamp(2rem, 6vw, 2.5rem);
+  font-size: 0;
+  line-height: 1;
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
+.page-header-logo {
+  display: block;
+  width: auto;
+  height: clamp(2rem, 6vw, 2.5rem);
+  max-width: 100%;
+  object-fit: contain;
+}
+
+/* 内部処理用の要素が画面に現れないようにする */
 #gasResultFrame,
 iframe.hidden-frame,
-#scanCanvas {
+#scanCanvas[hidden] {
   display: none !important;
   position: fixed !important;
   left: -10000px !important;
