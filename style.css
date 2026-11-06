@@ -273,3 +273,21 @@ button:disabled { opacity: 0.48; cursor: not-allowed; }
   .qr-image img, .qr-image canvas { width: 220px !important; height: 220px !important; }
   .qr-instruction { color: #111; }
 }
+
+#gasResultFrame,
+iframe.hidden-frame,
+#scanCanvas {
+  display: none !important;
+  position: fixed !important;
+  left: -10000px !important;
+  top: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
