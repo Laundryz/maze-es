@@ -29,6 +29,7 @@ const cameraPlaceholder = document.getElementById("cameraPlaceholder");
 const scannerCard = document.getElementById("scannerCard");
 const submitArea = document.getElementById("submitArea");
 const submitButton = document.getElementById("submitBtn");
+const timeUpAlert = document.getElementById("timeUpAlert");
 
 function setStatus(message) {
   if (statusElement) statusElement.textContent = message || "";
@@ -93,6 +94,54 @@ async function prepareQrScanner() {
     }
   }
   return "preview-only";
+}
+
+// タイムアップ音声を、カメラ起動ボタンの操作中に準備しておく。
+// Chromeの自動再生制限に備え、無音で一度再生してから停止する。
+function unlockTimeUpAlert() {
+  if (!timeUpAlert) return;
+
+  const previousMuted = timeUpAlert.muted;
+  timeUpAlert.muted = true;
+  try {
+    const playPromise = timeUpAlert.play();
+    if (playPromise && typeof playPromise.then === "function") {
+      playPromise.then(() => {
+        timeUpAlert.pause();
+        try { timeUpAlert.currentTime = 0; } catch (error) {}
+        timeUpAlert.muted = previousMuted;
+      }).catch(error => {
+        timeUpAlert.muted = previousMuted;
+        console.warn("警告音の事前準備ができませんでした:", error);
+      });
+    } else {
+      timeUpAlert.pause();
+      timeUpAlert.muted = previousMuted;
+    }
+  } catch (error) {
+    timeUpAlert.muted = previousMuted;
+    console.warn("警告音の事前準備ができませんでした:", error);
+  }
+}
+
+// 残り時間が0になったときだけ警告音を再生する。
+function playTimeUpAlert() {
+  if (!timeUpAlert) {
+    console.warn("警告音用のaudio要素が見つかりません。");
+    return;
+  }
+
+  timeUpAlert.muted = false;
+  timeUpAlert.volume = 1;
+  try { timeUpAlert.currentTime = 0; } catch (error) {}
+
+  const playPromise = timeUpAlert.play();
+  if (playPromise && typeof playPromise.catch === "function") {
+    playPromise.catch(error => {
+      console.warn("警告音を再生できませんでした。alert.mp3の配置とブラウザの音声許可を確認してください。", error);
+      setStatus("時間切れです。警告音を再生できませんでした。alert.mp3の配置と端末の音量を確認してください。");
+    });
+  }
 }
 
 // カメラを起動
@@ -295,6 +344,7 @@ function expireGame() {
   timeElement.textContent = "00:00.000";
   updateTimerColor(0);
   setStatus("時間切れです。");
+  playTimeUpAlert();
   stopScanner();
   document.getElementById("resultHeading").textContent = "時間切れです";
   submitArea.hidden = true;
@@ -378,7 +428,10 @@ function initializeMazeApp() {
   }
   setCameraPreviewVisible(false);
   setStatus("準備完了。「カメラ起動」を押してください。");
-  startCameraButton.addEventListener("click", startScanner);
+  startCameraButton.addEventListener("click", () => {
+    unlockTimeUpAlert();
+    startScanner();
+  });
   stopCameraButton.addEventListener("click", stopScanner);
   submitButton.addEventListener("click", submitRecord);
 }

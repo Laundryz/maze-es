@@ -231,3 +231,7 @@ button:disabled { opacity: 0.48; cursor: not-allowed; }
   body { padding: 0; color: #111; background: #fff !important; background-image: none !important; }
   #appArea > :not(#qrPrintArea) { display: none !important; }
 }
+
+
+/* タイムアップ音声は画面上に表示しない */
+#timeUpAlert { display: none !important; }
