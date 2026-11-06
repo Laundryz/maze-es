@@ -138,7 +138,7 @@ async function startScanner() {
     video.playsInline = true;
     video.srcObject = mediaStream;
 
-    setStatus("カメラを取得しました。映像を準備しています...");
+    setStatus("カメラ取得完了、映像を準備中...");
     await video.play();
     await waitForVideoReady();
 
@@ -149,14 +149,14 @@ async function startScanner() {
     const scannerMode = await prepareQrScanner();
     if (scannerMode === "jsQR") {
       setStatus(gameState === "running"
-        ? "カメラ映像を表示中です。ゴール用QRコードを読み取ってください。"
-        : "カメラ映像を表示中です。スタート用QRコードを読み取ってください。");
+        ? "カメラ映像を表示中。ゴール用QRコードを読み取ってください。"
+        : "カメラ映像を表示中。スタート用QRコードを読み取ってください。");
       scanInterval = window.setInterval(scanFrame, 140);
     } else if (scannerMode === "BarcodeDetector") {
-      setStatus("カメラ映像を表示中です。Chrome標準機能でQRコードを読み取ります。");
+      setStatus("カメラ映像を表示中。");
       scanInterval = window.setInterval(scanFrame, 250);
     } else {
-      setStatus("カメラ映像は表示されています。");
+      setStatus("カメラ映像表示中。");
       setCameraError("QR読み取りライブラリを読み込めませんでした。");
     }
 
@@ -164,7 +164,7 @@ async function startScanner() {
     if (track) {
       track.addEventListener("ended", () => {
         if (mediaStream) stopScanner();
-        setCameraError("カメラ映像が終了しました。もう一度起動してください。");
+        setCameraError("カメラ映像が終了。もう一度起動してください。");
       }, { once: true });
     }
   } catch (error) {
@@ -408,7 +408,7 @@ function submitRecord() {
   pendingTimeout = window.setTimeout(() => {
     if (pendingRequestId === requestId) {
       document.getElementById("submitStatus").textContent =
-        "GASから完了通知を受け取れませんでした。再送信前にスプレッドシートを確認してください。";
+        "GASから完了通知を受け取れませんでした。";
       submitButton.disabled = false;
       pendingRequestId = null;
       pendingTimeout = null;
