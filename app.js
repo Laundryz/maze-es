@@ -276,7 +276,7 @@ function finishGame() {
   finalDisplayTime = formatTime(finalTimeMs);
   timeElement.textContent = finalDisplayTime;
   updateTimerColor(LIMIT_TIME);
-  setStatus("ゴールしました！ユーザー名を入力して記録してください。");
+  setStatus("ゴールしました！");
   document.getElementById("resultTime").textContent = "クリア時間：" + finalDisplayTime;
   submitArea.hidden = false;
 
@@ -324,7 +324,7 @@ window.addEventListener("message", function(event) {
     gameState = "saved";
     submitButton.disabled = true;
     document.getElementById("submitStatus").textContent = data.message || "登録が完了しました。";
-    setStatus("ランキングへの登録が完了しました。");
+    setStatus("ランキングへの登録完了");
   } else {
     submitButton.disabled = false;
     document.getElementById("submitStatus").textContent = "登録できませんでした：" + (data.message || "原因不明のエラー");
