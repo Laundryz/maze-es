@@ -19,7 +19,8 @@
       <p id="gameStatus" class="status">カメラを起動してスタートQRコードを読み取ってください。</p>
     </section>
 
-    <section class="scanner-card">
+    <!-- ゴール後はJavaScriptでこの読み取りエリア全体を非表示にします -->
+    <section id="scannerCard" class="scanner-card">
       <h2>QRコード読み取り</h2>
       <div id="videoFrame" class="video-frame">
         <div id="cameraPlaceholder" class="camera-placeholder">

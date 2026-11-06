@@ -6,7 +6,6 @@
 }
 
 * { box-sizing: border-box; }
-
 html { min-height: 100%; }
 
 body {
@@ -25,14 +24,27 @@ body {
 }
 
 .app-container { width: min(760px, 100%); margin: 0 auto; }
-
 .page-header { text-align: center; margin-bottom: 22px; }
 .page-header h1 {
-  margin: 0 0 8px;
-  font-size: clamp(2rem, 6vw, 2.5rem);
-  color: #f7fbff;
-  letter-spacing: 0.08em;
-  text-shadow: 0 0 10px rgba(0, 191, 255, 0.75), 0 0 24px rgba(150, 50, 255, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+  margin: 0 0 12px;
+  padding: 0;
+  font-size: 0;
+  line-height: 0;
+  letter-spacing: 0;
+  text-shadow: none;
+}
+.page-header-logo {
+  display: block;
+  width: min(360px, 85vw);
+  height: auto;
+  max-width: 100%;
+  max-height: 174px;
+  object-fit: contain;
+  margin: 0 auto;
 }
 .page-header p, .help-text { color: #d1def5; line-height: 1.6; }
 
@@ -50,7 +62,6 @@ body {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
-
 .timer-card { text-align: center; }
 .timer-label { margin: 0; color: #b9d7f2; letter-spacing: 0.12em; }
 .timer {
@@ -62,14 +73,10 @@ body {
   color: #8cecff;
   text-shadow: 0 0 10px rgba(0, 195, 255, 0.55), 0 0 26px rgba(0, 98, 255, 0.36);
 }
-
-/* 残り3分以下：黄色 */
 .timer.timer-warning {
   color: #ffe66d;
   text-shadow: 0 0 10px rgba(255, 220, 65, 0.65), 0 0 26px rgba(255, 170, 0, 0.42);
 }
-
-/* 残り1分以下：赤色 */
 .timer.timer-danger {
   color: #ff626f;
   text-shadow: 0 0 10px rgba(255, 70, 90, 0.70), 0 0 26px rgba(220, 20, 55, 0.50);
@@ -89,8 +96,6 @@ h3 { margin: 0 0 12px; }
   isolation: isolate;
   box-shadow: 0 0 20px rgba(0, 133, 255, 0.12);
 }
-
-/* カメラ表示領域。videoと停止中メッセージを同じ場所に重ねる */
 .camera-placeholder {
   position: absolute;
   inset: 0;
@@ -103,8 +108,6 @@ h3 { margin: 0 0 12px; }
   background: rgba(5, 14, 31, 0.92);
   overflow: hidden;
 }
-
-/* カメラ映像：起動前は非表示 */
 .camera-preview {
   position: absolute;
   inset: 0;
@@ -115,15 +118,11 @@ h3 { margin: 0 0 12px; }
   background: #050a14;
   z-index: 1;
 }
-
-/* 起動中は同じcameraPlaceholder内に映像を表示 */
 .camera-placeholder.is-active .camera-preview {
   display: block;
   visibility: visible !important;
   opacity: 1 !important;
 }
-
-/* 起動中は停止中メッセージだけを隠す */
 .camera-placeholder-message {
   position: absolute;
   inset: 0;
@@ -135,7 +134,6 @@ h3 { margin: 0 0 12px; }
   z-index: 2;
   color: #d8e9ff;
 }
-
 .camera-placeholder.is-active .camera-placeholder-message { display: none !important; }
 .camera-icon { font-size: 3rem; }
 .button-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
@@ -167,7 +165,6 @@ button:disabled { opacity: 0.48; cursor: not-allowed; }
   color: #fff;
   box-shadow: 0 0 14px rgba(0, 220, 190, 0.20);
 }
-/* エラー表示：空のときは領域を作らず、表示が必要なときだけフッター直前に出す */
 .error-message {
   color: #ff969e;
   overflow-wrap: anywhere;
@@ -177,9 +174,7 @@ button:disabled { opacity: 0.48; cursor: not-allowed; }
   font-size: 0.92rem;
   line-height: 1.6;
 }
-.error-message:empty {
-  display: none;
-}
+.error-message:empty { display: none; }
 .error-message:not(:empty) {
   display: block;
   margin: 12px auto 10px;
@@ -202,102 +197,14 @@ button:disabled { opacity: 0.48; cursor: not-allowed; }
 .submit-card input::placeholder { color: #9aacc5; }
 .submit-card input:focus { outline: 2px solid rgba(0, 190, 255, 0.55); outline-offset: 1px; }
 .result-time { font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; color: #8cecff; }
-.qr-print-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-.qr-print-heading .help-text { margin-top: -6px; }
-.qr-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.qr-item {
-  border: 1px solid rgba(104, 177, 255, 0.40);
-  border-radius: 10px;
-  padding: 16px 10px;
-  text-align: center;
-  background: rgba(2, 8, 23, 0.72);
-}
-.qr-role-label {
-  display: block;
-  margin: 0 auto 12px;
-  padding: 9px 12px;
-  border-radius: 8px;
-  color: #fff;
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-}
-.qr-item-start .qr-role-label { background: linear-gradient(135deg, #0759a9, #078fc9); }
-.qr-item-goal .qr-role-label { background: linear-gradient(135deg, #86215c, #bd315e); }
-.qr-image {
-  min-height: 240px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: fit-content;
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 10px;
-  background: #fff;
-  border-radius: 6px;
-}
-.qr-image img, .qr-image canvas { display: block; max-width: 100%; height: auto; }
-.qr-instruction { margin: 12px 0 0; color: #d8e8ff; font-size: 0.95rem; font-weight: 700; line-height: 1.5; letter-spacing: normal; }
 .page-footer { text-align: center; color: #c3d1e8; padding: 8px; text-shadow: 0 1px 5px #000; }
 .hidden-frame { display: none; width: 0; height: 0; border: 0; }
 
-@media (max-width: 520px) {
-  body { padding: 14px 10px 28px; background-attachment: scroll; }
-  .timer-card, .scanner-card, .submit-card, .qr-print-card { padding: 16px; }
-  .qr-print-heading { display: block; }
-  .qr-print-heading button { margin-bottom: 14px; }
-  .qr-grid { grid-template-columns: 1fr; }
-}
-
-@media print {
-  @page { margin: 12mm; }
-  body { padding: 0; color: #111; background: #fff !important; background-image: none !important; }
-  #appArea > :not(#qrPrintArea) { display: none !important; }
-  #qrPrintArea {
-    display: block !important;
-    color: #111;
-    background: #fff;
-    border: 0;
-    box-shadow: none;
-    backdrop-filter: none;
-    margin: 0;
-    padding: 0;
-  }
-  #qrPrintArea h2, #qrPrintArea .help-text { color: #111; }
-  .qr-print-heading button, .qr-print-heading .help-text, #qrPrintArea > .help-text { display: none !important; }
-  .qr-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
-  .qr-item { break-inside: avoid; color: #111; background: #fff; border: 1px solid #333; box-shadow: none; }
-  .qr-role-label { color: #000; background: #fff !important; border: 2px solid #000; text-shadow: none; }
-  .qr-image { min-height: 240px; background: #fff; }
-  .qr-image img, .qr-image canvas { width: 220px !important; height: 220px !important; }
-  .qr-instruction { color: #111; }
-}
-
-/* タイトル文字の代わりにロゴ画像を表示（元の見出し文字と同じ高さ） */
-.page-header h1 {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: clamp(2.4rem, 7.2vw, 3rem);
-  font-size: 0;
-  line-height: 1;
-  letter-spacing: 0;
-  text-shadow: none;
-}
-
-.page-header-logo {
-  display: block;
-  width: auto;
-  height: clamp(2.4rem, 7.2vw, 3rem);
-  max-width: 100%;
-  object-fit: contain;
-}
+/* ゴール後は読み取りエリア全体を確実に非表示 */
+.scanner-card[hidden] { display: none !important; }
 
 /* 内部処理用の要素が画面に現れないようにする */
-#gasResultFrame,
-iframe.hidden-frame,
-#scanCanvas[hidden] {
+#gasResultFrame, iframe.hidden-frame, #scanCanvas[hidden] {
   display: none !important;
   position: fixed !important;
   left: -10000px !important;
@@ -313,33 +220,14 @@ iframe.hidden-frame,
   pointer-events: none !important;
 }
 
-/* タイトルロゴ：幅を直接指定して、文字タイトルより十分大きく表示 */
-.page-header h1 {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 0;
-  margin: 0 0 12px;
-  padding: 0;
-  font-size: 0;
-  line-height: 0;
-  letter-spacing: 0;
-  text-shadow: none;
-}
-
-.page-header-logo {
-  display: block;
-  width: min(360px, 85vw);
-  height: auto;
-  max-width: 100%;
-  max-height: 174px;
-  object-fit: contain;
-  margin: 0 auto;
-}
-
 @media (max-width: 520px) {
-  .page-header-logo {
-    width: min(320px, 85vw);
-    max-height: 155px;
-  }
+  body { padding: 14px 10px 28px; background-attachment: scroll; }
+  .timer-card, .scanner-card, .submit-card, .qr-print-card { padding: 16px; }
+  .page-header-logo { width: min(320px, 85vw); max-height: 155px; }
+}
+
+@media print {
+  @page { margin: 12mm; }
+  body { padding: 0; color: #111; background: #fff !important; background-image: none !important; }
+  #appArea > :not(#qrPrintArea) { display: none !important; }
 }
