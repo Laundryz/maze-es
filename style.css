@@ -158,7 +158,7 @@ button:disabled { opacity: 0.48; cursor: not-allowed; }
 .secondary-button {
   background: rgba(31, 49, 78, 0.9);
   color: #eaf5ff;
-  border-color: rgba(125, 190, 255, 0.35
+  border-color: rgba(125, 190, 255, 0.35);
 }
 .success-button {
   width: 100%;
@@ -166,9 +166,8 @@ button:disabled { opacity: 0.48; cursor: not-allowed; }
   background: linear-gradient(135deg, #078a83, #18ae9d);
   color: #fff;
   box-shadow: 0 0 14px rgba(0, 220, 190, 0.20);
-  text-align: center;
 }
-/* エラー表示 */
+/* エラー表示：空のときは領域を作らず、表示が必要なときだけフッター直前に出す */
 .error-message {
   color: #ff969e;
   overflow-wrap: anywhere;
