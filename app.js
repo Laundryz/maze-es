@@ -1,6 +1,3 @@
-// ==============================
-// 脱出迷宮：QRコード・タイマー・GAS送信
-// ==============================
 const GAS_WEB_APP_URL = "https://script.google.com/a/macros/g.bears.ed.jp/s/AKfycbz_VGhmY-b_UQli7bDT9_MiCrVtTh2gU_qMDfw8X0H9xyCd-wfzy2-0AxErL8iuHcVA/exec";
 const START_QR_VALUE = "MAZE_START_V1";
 const GOAL_QR_VALUE = "MAZE_GOAL_V1";
@@ -80,7 +77,7 @@ function waitForVideoReady(timeoutMs = 10000) {
     };
     const onError = () => {
       cleanup();
-      reject(new Error("video要素でカメラ映像を読み込めませんでした。"));
+      reject(new Error("カメラを読み込めませんでした。"));
     };
 
     video.addEventListener("loadedmetadata", check);
@@ -117,12 +114,12 @@ async function startScanner() {
   setStatus("カメラを確認しています...");
 
   if (mediaStream) {
-    setStatus("カメラは起動中です。QRコードを映してください。");
+    setStatus("カメラ起動中。QRコードを映してください。");
     return;
   }
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    setCameraError("このページではカメラを利用できません。HTTPSで開いているか確認してください。");
+    setCameraError("このページではカメラを利用できません。");
     setStatus("カメラを起動できませんでした。");
     return;
   }
@@ -159,8 +156,8 @@ async function startScanner() {
       setStatus("カメラ映像を表示中です。Chrome標準機能でQRコードを読み取ります。");
       scanInterval = window.setInterval(scanFrame, 250);
     } else {
-      setStatus("カメラ映像は表示されていますが、QR読み取りライブラリを利用できません。学校のネットワークでCDNが制限されていないか確認してください。");
-      setCameraError("QR読み取りライブラリ jsQR を読み込めませんでした。");
+      setStatus("カメラ映像は表示されています。");
+      setCameraError("QR読み取りライブラリを読み込めませんでした。");
     }
 
     const track = mediaStream.getVideoTracks()[0];
@@ -181,7 +178,7 @@ async function startScanner() {
 }
 
 function cameraErrorMessage(error) {
-  if (error && error.name === "NotAllowedError") return "カメラへのアクセスが拒否されました。Chromeのサイト設定または学校の管理設定を確認してください。";
+  if (error && error.name === "NotAllowedError") return "カメラへのアクセスが拒否されました。Chromeのサイト設定を確認してください。";
   if (error && error.name === "NotFoundError") return "カメラが見つかりません。";
   if (error && error.name === "NotReadableError") return "カメラを使用できません。ほかのアプリがカメラを使用していないか確認してください。";
   return "カメラを起動できませんでした。";
@@ -330,7 +327,7 @@ function expireGame() {
   gameState = "expired";
   timeElement.textContent = "00:00.000";
   updateTimerColor(0);
-  setStatus("時間切れです。今回の記録は登録できません。");
+  setStatus("時間切れです。");
   stopScanner();
   document.getElementById("resultHeading").textContent = "時間切れです";
   submitArea.hidden = true;
@@ -423,13 +420,13 @@ function initializeMazeApp() {
   const required = [video, canvas, timeElement, statusElement, startCameraButton,
     stopCameraButton, cameraPlaceholder, submitArea, submitButton];
   if (required.some(element => !element)) {
-    setStatus("HTMLの必要な要素が見つかりません。index.htmlを最新版にしてください。");
+    setStatus("HTMLの必要な要素が見つかりません。");
     setCameraError("HTMLの必要な要素が不足しているため、アプリを初期化できません。");
     return;
   }
 
   setCameraPreviewVisible(false);
-  setStatus("準備完了です。「カメラを起動」を押してください。");
+  setStatus("準備完了。「カメラを起動」を押してください。");
   startCameraButton.addEventListener("click", startScanner);
   stopCameraButton.addEventListener("click", stopScanner);
   submitButton.addEventListener("click", submitRecord);
@@ -441,7 +438,7 @@ window.addEventListener("error", function(event) {
   if (!cameraErrorElement) return;
 
   if (event.message === "Script error." || !event.message) {
-    setCameraError("外部スクリプトのエラーを検出しました。QR読み取りライブラリ（jsQR）の読み込みが学校のネットワークで制限されていないか確認してください。カメラ映像自体は表示できる場合があります。");
+    setCameraError("外部スクリプトエラー");
     return;
   }
 
