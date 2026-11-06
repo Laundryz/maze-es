@@ -426,7 +426,7 @@ function initializeMazeApp() {
   }
 
   setCameraPreviewVisible(false);
-  setStatus("準備完了。「カメラを起動」を押してください。");
+  setStatus("準備完了。「カメラ起動」を押してください。");
   startCameraButton.addEventListener("click", startScanner);
   stopCameraButton.addEventListener("click", stopScanner);
   submitButton.addEventListener("click", submitRecord);
